@@ -41,6 +41,13 @@ export function validateTimesheet(data: TimesheetData): string[] {
   const seen = new Set<string>();
   for (const day of data.days) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(day.date)) { errors.push(`Ngày “${day.date}” không đúng định dạng YYYY-MM-DD.`); continue; }
+    const [dayYear, dayMonth, dayNumber] = day.date.split("-").map(Number);
+    const parsedDate = new Date(dayYear, dayMonth - 1, dayNumber);
+    if (parsedDate.getFullYear() !== dayYear || parsedDate.getMonth() !== dayMonth - 1 || parsedDate.getDate() !== dayNumber) {
+      errors.push(`Ngày “${day.date}” không tồn tại.`);
+      continue;
+    }
+    if (dayYear !== data.year || dayMonth !== data.month) errors.push(`Ngày “${day.date}” không thuộc tháng ${String(data.month).padStart(2, "0")}/${data.year}.`);
     if (seen.has(day.date)) errors.push(`Ngày “${day.date}” bị lặp.`);
     seen.add(day.date);
     for (const [label, value] of [["Ca 1", day.shift1], ["Ca 2", day.shift2]] as const) {
